@@ -2,7 +2,7 @@ import win32com.client as comclt, socket, threading,os, traceback
 
 wsh = comclt.Dispatch("WScript.shell")
 
-#Port for the server.
+#Port for the server
 port = 50096
 
 #Setting up ipv4 TCP Socket
