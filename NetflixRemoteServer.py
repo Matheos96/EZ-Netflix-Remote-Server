@@ -2,14 +2,17 @@ import win32com.client as comclt, socket, threading,os, traceback
 
 wsh = comclt.Dispatch("WScript.shell")
 
+#Port for the server.
 port = 50096
 
+#Setting up ipv4 TCP Socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind(("", port))
 s.listen(1)
 
 
+#Shuts down the whole server
 def shutDown():  
     connect.shutdown(socket.SHUT_RDWR)
     connect.close()
@@ -17,10 +20,10 @@ def shutDown():
     os._exit(0)
 
 
+#Emulates keypresses
 def doAction(action):
-    print action
-    
-    wsh.AppActivate("Netflix")
+    print(action)
+    wsh.AppActivate("Netflix") #Look for Window with name "Netflix"
     if action == "actionPause":
        wsh.SendKeys("{ENTER}")
     elif action == "actionFullscreen":
@@ -38,6 +41,7 @@ def doAction(action):
     elif action == "actionMute":
         wsh.SendKeys("{M}")
 
+#The Actual Server
 def server(connect, adress):
     while True:
         try:
@@ -45,33 +49,35 @@ def server(connect, adress):
 
             if data.startswith("action"):
                 doAction(data)
-            elif data.lower()=="test":
+            elif data.lower()=="test": #Test statement one can send to server. If ok is received, is working
                 answer = "ok\n"
                 connect.send(answer.encode())
-            elif data.lower()=="exit":
+            elif data.lower()=="exit": #'exit' command forces a madeup exception which leads to the except block being run which closes the connection (Stupid but works)
                 raise Exception("Haha")
             elif data.lower()=="shutdown":
                 shutDown()
             elif len(data)>0:
-                print "Unknown command '"+data+"'"
+                print("Unknown command '"+data+"'")
         except:
             connect.shutdown(socket.SHUT_RDWR)
             connect.close()
-            print ("Closed port on "+adress[0]+"\n")
+            print("Closed port on "+adress[0]+"\n")
             break
 
+
+
+#Infinite Loop for running the server using Threads
 while True:
     try:
         
         connect, adress = s.accept()
-        print adress[0]+" connected"
+        print(adress[0]+" connected")
         thread = threading.Thread(target=server, args=(connect, adress))
         thread.daemon = True
         thread.start()
-        print "TJO"
         
     except:
-        print "Server Crashed. Restarting.."
+        print("Server Crashed. Restarting...")
     
 s.close()
-print "Server stopped"
+print("Server stopped")
