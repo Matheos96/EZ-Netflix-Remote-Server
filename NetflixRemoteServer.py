@@ -23,9 +23,11 @@ def shutDown():
 #Emulates keypresses
 def doAction(action):
     print(action)
-    wsh.AppActivate("Netflix -") #Look for Window with name "Netflix"
+    wsh.AppActivate("Netflix") #Look for Window with name "Netflix"
+    #wsh.AppActivate("Netflix -") #Look for Window with name "Netflix"
     if action == "actionPause":
-       wsh.SendKeys("{ENTER}")
+        wsh.SendKeys(" ")
+       #wsh.SendKeys("{ENTER}")
     elif action == "actionFullscreen":
         wsh.SendKeys("{F}")
     elif action == "actionForward":
