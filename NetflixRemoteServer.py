@@ -7,6 +7,9 @@ window_name = "Netflix -"
 if len(sys.argv) >= 2:
     if sys.argv[1].lower() == "app":
         window_name = "Netflix"
+        print "Started in Netflix app mode"
+else:
+    print "Started in Netflix Browser mode"
 
 # Port for the server.
 port = 50096
