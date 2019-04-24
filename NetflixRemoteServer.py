@@ -1,82 +1,88 @@
-import win32com.client as comclt, socket, threading,os, traceback
+import win32com.client as comclt, socket, threading, os, sys
 
 wsh = comclt.Dispatch("WScript.shell")
 
-#Port for the server.
+window_name = "Netflix -"
+
+if len(sys.argv) >= 2:
+    if sys.argv[1].lower() == "app":
+        window_name = "Netflix"
+
+# Port for the server.
 port = 50096
 
-#Setting up ipv4 TCP Socket
+# Setting up ipv4 TCP Socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind(("", port))
 s.listen(1)
 print "Server Started on port " + str(port)
 
-#Shuts down the whole server
-def shutDown():  
+
+# Shuts down the whole server
+def shut_down():
     connect.shutdown(socket.SHUT_RDWR)
     connect.close()
-    print ("Closed port on "+adress[0]+"\n")
+    print ("Closed port on " + address[0] + "\n")
     os._exit(0)
 
 
-#Emulates keypresses
-def doAction(action):
+# Emulates keypresses
+def do_action(action):
     print(action)
-    wsh.AppActivate("Netflix") #Look for Window with name "Netflix"
-    #wsh.AppActivate("Netflix -") #Look for Window with name "Netflix"
+    wsh.AppActivate(window_name)  # Look for Window with name "Netflix"
+    # wsh.AppActivate("Netflix -")  # Look for Window with name "Netflix"
     if action == "actionPause":
         wsh.SendKeys(" ")
-       #wsh.SendKeys("{ENTER}")
-    elif action == "actionFullscreen":
+    elif action == "actionFullscreen" and window_name == "Netflix -":
         wsh.SendKeys("{F}")
     elif action == "actionForward":
         wsh.SendKeys("{RIGHT}")
     elif action == "actionBack":
         wsh.SendKeys("{LEFT}")
-    elif action == "actionVolUp":
+    elif action == "actionVolUp" and window_name == "Netflix -":
         wsh.SendKeys("{UP}")
-    elif action == "actionVolDown":
+    elif action == "actionVolDown" and window_name == "Netflix -":
         wsh.SendKeys("{DOWN}")
-    elif action == "actionMute":
+    elif action == "actionMute" and window_name == "Netflix -":
         wsh.SendKeys("{M}")
 
-#The Actual Server
-def server(connect, adress):
+
+# The Actual Server
+def server(connection, addrs):
     while True:
         try:
-            data = (connect.recv(1024)).strip().decode()
+            data = (connection.recv(1024)).strip().decode()
 
             if data.startswith("action"):
-                doAction(data)
-            elif data.lower()=="test": #Test statement one can send to server. If ok is received, is working
+                do_action(data)
+            elif data.lower() == "test":  # Test statement one can send to server. If ok is received, is working
                 answer = "ok\n"
-                connect.send(answer.encode())
-            elif data.lower()=="shutdown":
-                shutDown()
-            elif len(data)>0:
-                print("Unknown command '"+data+"'")
+                connection.send(answer.encode())
+            elif data.lower() == "shutdown":
+                shut_down()
+            elif len(data) > 0:
+                print("Unknown command '" + data + "'")
         except:
-            connect.shutdown(socket.SHUT_RDWR)
-            connect.close()
-            print("Closed port on "+adress[0]+"\n")
+            connection.shutdown(socket.SHUT_RDWR)
+            connection.close()
+            print("Closed port on " + addrs[0] + "\n")
             break
 
 
-
-#Infinite Loop for running the server using Threads
+# Infinite Loop for running the server using Threads
 while True:
     try:
-        connect, adress = s.accept()
-        print(adress[0]+":")
-        thread = threading.Thread(target=server, args=(connect, adress))
+        connect, address = s.accept()
+        print(address[0] + ":")
+        thread = threading.Thread(target=server, args=(connect, address))
         thread.daemon = True
         thread.start()
-		
-		
-        
+
+
+
     except:
         print("Server Crashed. Restarting...")
-    
+
 s.close()
 print("Server stopped")
